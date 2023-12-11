@@ -5,12 +5,13 @@ import { buildSchema } from "type-graphql";
 
 import { userResolvers } from "./resolvers/userResolvers";
 
-async () => {
+(async () => {
     const app = express();
 
     const apolloserver = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [userResolvers]
+            resolvers: [userResolvers],
+            validate: { forbidUnknownValues: false } 
         }),
         context : ({req, res}) => ({req, res})
     })
@@ -20,4 +21,4 @@ async () => {
     app.listen(3000, () => {
         console.log("Connected on port", 3000 )
     })
-}
+})();
