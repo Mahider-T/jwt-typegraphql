@@ -17,7 +17,6 @@ export const isSuperAdmin : MiddlewareFn<MyContext> =async ({ context }, next) =
         const payload  = await jwt.verify(token , process.env.ACCESS_TOKEN_SECRET!) as JwtPayload;
         if(!payload) throw new Error("No payload");
         
-        console.log(payload?.role);
         if(payload?.role !== "SUPER_ADMIN") throw new Error("Only super admins allowed") 
 
     }catch(error) {

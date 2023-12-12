@@ -9,6 +9,7 @@ import { MyContext } from "src/MyContext";
 import { createAccessToken, createRefreshToken } from "../auth";
 // import { isAuth } from "../isAuth";
 import { isSuperAdmin } from "../isSuperAdmin";
+import { isAuth } from "../isAuth";
 
 const prisma = new PrismaClient();
 
@@ -78,6 +79,7 @@ class LoginResponse {
 export class userResolvers {
 
     @Mutation(() => User)
+    @UseMiddleware(isSuperAdmin)
     async createAdmin(@Arg("newAdmin", () => CreateUserInput) newAdmin : CreateUserInput) : Promise<User>  {
         try{
             const hashedPass = await hash(newAdmin.password, 10);
@@ -94,15 +96,22 @@ export class userResolvers {
         }        
     }
 
+
+
     @Query()
-    // @UseMiddleware(isAuth)
     @UseMiddleware(isSuperAdmin)
-    greetings() : string {
-
-        return `Hello sir`
+    superAdminQuery() : string {
+        return `Only Super Admin can access me`
     }
-    @Query(() => [User])
 
+    @Query()
+    @UseMiddleware(isAuth)
+    authenticatedQuery() : string {
+        return `Only authenticated users can access me`
+    }
+
+
+    @Query(() => [User])
     async getUsers() {
         return await prisma.user.findMany();
     }
