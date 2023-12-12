@@ -97,9 +97,9 @@ export class userResolvers {
     @Query()
     // @UseMiddleware(isAuth)
     @UseMiddleware(isSuperAdmin)
-    greetings( @Ctx() {payload} : MyContext ) : string {
+    greetings() : string {
 
-        return `Hello ${payload!.role}`
+        return `Hello sir`
     }
     @Query(() => [User])
 
