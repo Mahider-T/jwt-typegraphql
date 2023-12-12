@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,22 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  fName     String
+  lName     String
+  role      Role     @default(ADMIN)
+  status    Status   @default(INACTIVE)
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Status {
   ACTIVE
   INACTIVE
 }
 
-enum Role { 
+enum Role {
   ADMIN
   SUPER_ADMIN
-}
-model User{
-  id          Int @id @default(autoincrement()) 
-  fName       String 
-  lName       String
-  role        Role? @default(ADMIN)
-  status      Status? @default(INACTIVE)      
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
 }
