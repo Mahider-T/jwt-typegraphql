@@ -1,12 +1,14 @@
-import { Field, InputType, ObjectType, Resolver, registerEnumType, Int, Mutation, Arg, Query, Ctx } from "type-graphql";
+import { Field, InputType, ObjectType, Resolver, registerEnumType, Int, Mutation, Arg, Query, Ctx, UseMiddleware } from "type-graphql";
 
 import { hash, compare } from "bcrypt";
 
 import { PrismaClient, Role, Status } from "@prisma/client";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+
 import { MyContext } from "src/MyContext";
-dotenv.config();
+
+import { createAccessToken, createRefreshToken } from "../auth";
+// import { isAuth } from "../isAuth";
+import { isSuperAdmin } from "../isSuperAdmin";
 
 const prisma = new PrismaClient();
 
@@ -72,17 +74,9 @@ class LoginResponse {
     token : string
 }
 
-function generateToken(user : User, secret : string) : string {
-
-    if(!secret) throw new Error("Secret can not be empty");
-    
-    const token = jwt.sign({role : user.role, status : user.status}, secret, {expiresIn : "15m"})
-
-    return token;
-}
-
 @Resolver()
 export class userResolvers {
+
     @Mutation(() => User)
     async createAdmin(@Arg("newAdmin", () => CreateUserInput) newAdmin : CreateUserInput) : Promise<User>  {
         try{
@@ -100,9 +94,17 @@ export class userResolvers {
         }        
     }
 
+    @Query()
+    // @UseMiddleware(isAuth)
+    @UseMiddleware(isSuperAdmin)
+    greetings( @Ctx() {payload} : MyContext ) : string {
+
+        return `Hello ${payload!.role}`
+    }
     @Query(() => [User])
+
     async getUsers() {
-        return await prisma.user.findMany()
+        return await prisma.user.findMany();
     }
 
     @Query(() => LoginResponse  )
@@ -123,11 +125,11 @@ export class userResolvers {
             if(!process.env.REFRESH_TOKEN_SECRET || !process.env.ACCESS_TOKEN_SECRET) {
                 throw new Error("Jwt secret can not be undefined");
             }
-            const refreshToken = generateToken(userExists, process.env.REFRESH_TOKEN_SECRET);
+            const refreshToken = createRefreshToken(userExists);
 
             res.cookie( "theToken", refreshToken, {httpOnly:true} )
 
-            return {token : generateToken(userExists, process.env.ACCESS_TOKEN_SECRET)}
+            return {token : createAccessToken(userExists)}
 
         }catch(error) {
             console.log(error);
