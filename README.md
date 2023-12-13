@@ -1,1 +1,2 @@
-# Is this an acceptable approach?
+# TypeGraphQL Authorization using middleware and custom auth checker
+
