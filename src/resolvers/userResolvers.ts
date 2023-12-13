@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType, Resolver, registerEnumType, Int, Mutation, Arg, Query, Ctx, UseMiddleware } from "type-graphql";
+import { Field, InputType, ObjectType, Resolver, registerEnumType, Int, Mutation, Arg, Query, Ctx, UseMiddleware, Authorized } from "type-graphql";
 
 import { hash, compare } from "bcrypt";
 
@@ -7,9 +7,10 @@ import { PrismaClient, Role, Status } from "@prisma/client";
 import { MyContext } from "src/MyContext";
 
 import { createAccessToken, createRefreshToken } from "../auth";
-// import { isAuth } from "../isAuth";
-import { isSuperAdmin } from "../isSuperAdmin";
+
 import { isAuth } from "../isAuth";
+
+
 
 const prisma = new PrismaClient();
 
@@ -79,7 +80,6 @@ class LoginResponse {
 export class userResolvers {
 
     @Mutation(() => User)
-    @UseMiddleware(isSuperAdmin)
     async createAdmin(@Arg("newAdmin", () => CreateUserInput) newAdmin : CreateUserInput) : Promise<User>  {
         try{
             const hashedPass = await hash(newAdmin.password, 10);
@@ -97,17 +97,18 @@ export class userResolvers {
     }
 
 
-
+    //Role based authentication using custom auth checker
     @Query()
-    @UseMiddleware(isSuperAdmin)
+    @Authorized(["SUPER_ADMIN"])
     superAdminQuery() : string {
-        return `Only Super Admin can access me`
+        return `Just got accessed by a SUPER_ADMIN`;
     }
 
+    //Use middleware to authenticate a user and set context to be used in query
     @Query()
     @UseMiddleware(isAuth)
-    authenticatedQuery() : string {
-        return `Only authenticated users can access me`
+    middlewareQuery(@Ctx() context : MyContext) : string {
+        return `Hi ${context.payload!.role}`
     }
 
 

@@ -2,8 +2,8 @@ import "reflect-metadata";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-
 import { userResolvers } from "./resolvers/userResolvers";
+import { customAuthChecker } from "./customAuth";
 
 // import cors from "cors";
 
@@ -15,24 +15,18 @@ import { userResolvers } from "./resolvers/userResolvers";
         origin : 'https://studio.apollographql.com'
     }
 
-    // app.use(
-    //     "/graphql",
-    //     cors({
-    //       origin: 'https://studio.apollographql.com',
-    //       credentials: true,
-    //     })
-    //   );
     const apolloserver = new ApolloServer({
         schema: await buildSchema({
             resolvers: [userResolvers],
+            authChecker :customAuthChecker,
             validate: { forbidUnknownValues: false } 
         }),
-        context : ({req, res}) => ({req, res})
+        context : ({req, res}) => ({req, res}),
     })
 
     await apolloserver.start();
     apolloserver.applyMiddleware({app: app , cors})
     app.listen(3000, () => {
-        console.log("Connected on port", 3000 )
+        console.log("Running on localhost:3000/graphql");
     })
 })();
