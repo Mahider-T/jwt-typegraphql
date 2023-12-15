@@ -88,8 +88,8 @@ export class userResolvers {
             const createdAdmin = await prisma.user.create({
                 data : updatedAdmin
             })
-    
             return createdAdmin;
+
         }catch(error){
             console.log(error)
             return error.message
@@ -100,8 +100,8 @@ export class userResolvers {
     //Role based authentication using custom auth checker
     @Query()
     @Authorized(["SUPER_ADMIN"])
-    superAdminQuery() : string {
-        return `Just got accessed by a SUPER_ADMIN`;
+    superAdminQuery(@Ctx() context: MyContext) : string {
+        return `Just got accessed by a ${context.payload!.role} `;
     }
 
     //Use middleware to authenticate a user and set context to be used in query

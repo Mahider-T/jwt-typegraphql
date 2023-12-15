@@ -16,13 +16,12 @@ export const isAuth : MiddlewareFn<MyContext> =({ context }, next) => {
 
         const token = authorization.split(" ")[1];
         const payload = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET!);
-        console.log(payload);
         context.payload = payload as any;
 
     }catch(error) {
         
-        throw new Error("Not Authorized");
         console.log(error);
+        throw new Error("Not Authorized");
     }
 
     return next();
